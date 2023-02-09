@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Quiz/KBC </title>
+    </head>
+    <body>
+        <h1>QUIZ APP</h1>
+        <form action = "/submit/quiz", method="post" >
+        {% for ques in question %}
+            <h4>
+                {{ques.question}} <br>
+                <input type = "radio" name = "{{ques.q_id}}" value = "{{ques.option1}}" required> {{ques.option1}}
+                <input type = "radio" name = "{{ques.q_id}}" value = "{{ques.option2}}" required> {{ques.option2}}
+                <input type = "radio" name = "{{ques.q_id}}" value = "{{ques.option3}}" required> {{ques.option3}}
+                <input type = "radio" name = "{{ques.q_id}}" value = "{{ques.option4}}" required> {{ques.option4}}
+            </h4>
+
+        {% endfor %}
+        <br><br>
+        <input type = "submit" name = "submitform" value = "SUBMIT">
+        </form>
+    </body>
+</html>
