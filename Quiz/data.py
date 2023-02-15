@@ -1,4 +1,5 @@
 import pymongo
+import datetime
 
 client = pymongo.MongoClient("mongodb://localhost:27017")
 db = client['Quiz']        
@@ -147,3 +148,10 @@ quiz_questions = [{
 }]}]
 
 #coll.insert_many(quiz_questions)
+
+# for data in coll.find({'Level':'EASY'}):
+#     qu = data['questions']
+#     print(qu)
+#     for dic in qu:
+
+
