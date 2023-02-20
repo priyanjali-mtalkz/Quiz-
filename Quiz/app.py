@@ -1,5 +1,4 @@
 from flask import Flask
-from controller import *
 from model.schema import Schema
 import pymongo
 import time
@@ -7,12 +6,13 @@ from flask import request,render_template,redirect,url_for,jsonify
 import random
 from model.configure import configure
 from datetime import datetime
+import test
 
 app = Flask(__name__)
 
 obj = Schema()
-
 obj1 = configure()
+
 arr = []
 user_answers = []
 client = pymongo.MongoClient("mongodb://localhost:27017")
@@ -45,6 +45,7 @@ def user_level():
     else:
 
         return render_template("level.html")
+
 # @app.route('/play/quiz',methods = ['GET','POST'])
 # def game():
 #     game.level = request.form.get('level')
@@ -57,18 +58,6 @@ def user_level():
 #         return render_template("quiz.html",question = game.q_rand)
 
 
-# @app.route('/play/quiz',methods=['GET','POST'])
-# def game():
-#     start_time = time.time()
-#     obj1.setStartTime(start_time)
-#     print(start_time)
-#     level = request.form.get('level')
-#     obj1.setLevel(level)
-#     quest = [i for i in coll.find({'Level':level}) if i not in user_questions]
-#     for quest in coll.find({'Level':level}).limit(5):
-#         q = quest['questions']
-#         game.q_rand = random.sample(q,5)
-#         return render_template("quiz.html",question = game.q_rand)
 
 @app.route('/play/quiz',methods=['GET','POST'])
 def game():
@@ -79,9 +68,58 @@ def game():
     obj1.setLevel(level)
     quest = [i for i in coll.find({'Level':level}) if i not in user_questions]
     for quest in coll.find({'Level':level}).limit(5):
+        # print(quest)
         q = quest['questions']
-        game.q_rand = random.sample(q,5)
+        #print(type(q))
+        new_q = list(filter(test.afterDate, q))        
+        #print(new_q)
+        #game.q_rand = random.sample(q,5)
+        game.q_rand = random.sample(new_q,len(new_q) if len(new_q)<5 else 5)
         return render_template("quiz.html",question = game.q_rand)
+    return jsonify()
+
+# @app.route('/play/quiz',methods=['GET','POST'])
+# def game(): 
+#     qu = []
+#     start_time = time.time()
+#     obj1.setStartTime(start_time)
+#     print(start_time)
+#     level = request.form.get('level')
+#     obj1.setLevel(level)
+#     quest = [i for i in coll.find({'Level':level}) if i not in user_questions]
+#     try:
+#         # print(type(quest))
+#         # for quest in coll.find({'Level':level}).limit(5):
+
+
+#         # for quest in coll.find({
+#         #     {'$and': [{'Level':level},
+#         #     {''questions'' :{'$elemMatch' : {"answer"date': {'$gte' :{'date': '2023-02-01 00:00:00' }}}}}]}}).limit(5):
+#             # q = quest['questions']
+        
+#             # for dic in q:
+#             #     print("hello")
+#             #     print(type(dic['date']))
+#             #     dic['date'] = datetime.strptime(
+#             #             "2023-09-01 ",
+#             #             "%Y-%m-%d ")
+#             #     dic['date'] = str(dic['date'])
+#             #     if(dic['date'] >= '2023-02-01 00:00:00'):
+#             #         qu.append(dic)
+#             for quest in coll.find({Level:"EASY"}):
+#                 game.q_rand = random.sample(test.afterDate(),5)
+#                 return render_template("quiz.html",question = game.q_rand)
+
+#     except Exception as e:
+#         print("----error in game function",e)
+#     return jsonify({'status':'failed'})
+
+# @app.route('/home')
+# def optionc():
+#     # for q in coll.aggregate([{ '$match' : {"$and":[{ 'Level' : 'EASY'},{'questions': { '$elemMatch': { 'answer': "C"} }}]} }, { '$unwind' : '$questions' }, { '$project' : { '_id' : 1, 'Level' : 1, 'questions.answer' : 1} }]):
+#     for q in coll.find({'Level': 'EASY','questions': { '$unwind' : '$questions' }, { '$elemMatch': { 'answer': "C"}}} ):
+#         print(q)
+#     return jsonify()
 
 
 @app.route('/submit/quiz',methods = ['POST','GET'])
@@ -90,27 +128,20 @@ def submit():
         print(obj1.getLevel())
         try:
             for dic in game.q_rand:
-                print("hello")
-                print(type(dic['date']))
-                dic['date'] = datetime.strptime(
-                        "2023-09-01 ",
-                        "%Y-%m-%d ")
-                dic['date'] = str(dic['date'])
-                if(dic['date'] > '2023-02-01 00:00:00'):
-                    dic['q_id'] = str(dic['q_id'])
-                    user_question = int(dic['q_id'])
-                    user_questions.append(user_question)
-                    user_answer = request.form.get(dic['q_id'])
-                    user_answer = user_answer[:1]
-                    #print(user_answer)
-                    user_answers.append(user_answer)
-                    correct_ans = dic['answer']
-                    #print(correct_ans)
-                    if(user_answer.startswith(correct_ans)):
-                        ans = ans + 1
-                    print(ans)
-                score = str(ans)
-                obj1.setScore(score)
+                dic['q_id'] = str(dic['q_id'])
+                user_question = int(dic['q_id'])
+                user_questions.append(user_question)
+                user_answer = request.form.get(dic['q_id'])
+                user_answer = user_answer[:1]
+                #print(user_answer)
+                user_answers.append(user_answer)
+                correct_ans = dic['answer']
+                #print(correct_ans)
+                if(user_answer.startswith(correct_ans)):
+                    ans = ans + 1
+                print(ans)
+            score = str(ans)                
+            obj1.setScore(score)
                 
             return render_template("score.html",score = score)
         except Exception as e:
@@ -196,6 +227,7 @@ def data():
         print("error in data function",e)
 
     return jsonify()
+
 
 
 if __name__ == "__main__":
