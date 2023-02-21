@@ -7,6 +7,9 @@ import random
 from model.configure import configure
 from datetime import datetime
 import test
+import redis
+import json
+from datetime import timedelta
 
 app = Flask(__name__)
 
@@ -14,12 +17,18 @@ obj = Schema()
 obj1 = configure()
 
 arr = []
-user_answers = []
+
+cache = redis.StrictRedis(host='localhost',port=6379,decode_responses = True)
 client = pymongo.MongoClient("mongodb://localhost:27017")
 db = client['Quiz']        
 coll = db['Question']
 user_questions = []
 
+def check_ans(l1, l2):
+   for i in range(min(len(l1), len(l2))):
+       if l1[i] != l2[i]:
+           return False
+   return len(l1) == len(l2)
 
 @app.route('/',methods=['GET','POST'])
 def register():
@@ -61,6 +70,7 @@ def user_level():
 
 @app.route('/play/quiz',methods=['GET','POST'])
 def game():
+    game.user_answers = []
     start_time = time.time()
     obj1.setStartTime(start_time)
     print(start_time)
@@ -73,46 +83,62 @@ def game():
         #print(type(q))
         new_q = list(filter(test.afterDate, q))        
         #print(new_q)
-        #game.q_rand = random.sample(q,5)
-        game.q_rand = random.sample(new_q,len(new_q) if len(new_q)<5 else 5)
-        return render_template("quiz.html",question = game.q_rand)
+        game.q_rand = random.sample(q,5)
+        # print(game.q_rand[0])
+        # print(game.q_rand[1])
+        # print(game.q_rand[2])
+        # print(game.q_rand[3])
+        # print(game.q_rand[4])
+        #game.q_rand = random.sample(new_q,len(new_q) if len(new_q)<5 else 5)
+        #return render_template("quiz.html",question = game.q_rand)    
+        return render_template("q1.html",question=game.q_rand[0],user_id =  obj1.getMobile())
     return jsonify()
 
-# @app.route('/play/quiz',methods=['GET','POST'])
-# def game(): 
-#     qu = []
-#     start_time = time.time()
-#     obj1.setStartTime(start_time)
-#     print(start_time)
-#     level = request.form.get('level')
-#     obj1.setLevel(level)
-#     quest = [i for i in coll.find({'Level':level}) if i not in user_questions]
-#     try:
-#         # print(type(quest))
-#         # for quest in coll.find({'Level':level}).limit(5):
+@app.route('/q2',methods = ['POST'])
+def qu():
+    user_answer = request.form.to_dict('ans')
+    # user_answer = user_answer[:1]
+    ans = list(user_answer.values())
+    ans = ans[0]
+    user_ans = ans[:1]
+    print(user_ans)
+    game.user_answers.append(user_ans)
+    return render_template("q2.html",question=game.q_rand[1],user_id= obj1.getMobile())
 
+@app.route('/q3',methods = ['POST'])
+def que():
+    user_answer = request.form.to_dict('ans')
+    # user_answer = user_answer[:1]
+    ans = list(user_answer.values())
+    ans = ans[0]
+    user_ans = ans[:1]
+    print(user_ans)
+    game.user_answers.append(user_ans)
+    return render_template("q3.html",question=game.q_rand[2],user_id= obj1.getMobile())
 
-#         # for quest in coll.find({
-#         #     {'$and': [{'Level':level},
-#         #     {''questions'' :{'$elemMatch' : {"answer"date': {'$gte' :{'date': '2023-02-01 00:00:00' }}}}}]}}).limit(5):
-#             # q = quest['questions']
-        
-#             # for dic in q:
-#             #     print("hello")
-#             #     print(type(dic['date']))
-#             #     dic['date'] = datetime.strptime(
-#             #             "2023-09-01 ",
-#             #             "%Y-%m-%d ")
-#             #     dic['date'] = str(dic['date'])
-#             #     if(dic['date'] >= '2023-02-01 00:00:00'):
-#             #         qu.append(dic)
-#             for quest in coll.find({Level:"EASY"}):
-#                 game.q_rand = random.sample(test.afterDate(),5)
-#                 return render_template("quiz.html",question = game.q_rand)
+@app.route('/q4',methods = ['POST'])
+def ques():
+    user_answer = request.form.to_dict('ans')
+    # user_answer = user_answer[:1]
+    ans = list(user_answer.values())
+    ans = ans[0]
+    user_ans = ans[:1]
+    print(user_ans)
+    game.user_answers.append(user_ans)
+    return render_template("q4.html",question=game.q_rand[3],user_id= obj1.getMobile())
 
-#     except Exception as e:
-#         print("----error in game function",e)
-#     return jsonify({'status':'failed'})
+@app.route('/q5',methods = ['POST'])
+def quest():
+    user_answer = request.form.to_dict('ans')
+    # user_answer = user_answer[:1]
+    ans = list(user_answer.values())
+    ans = ans[0]
+    user_ans = ans[:1]
+    print(user_ans)
+    game.user_answers.append(user_ans)
+    return render_template("q5.html",question=game.q_rand[4],user_id= obj1.getMobile())
+    
+
 
 # @app.route('/home')
 # def optionc():
@@ -124,26 +150,45 @@ def game():
 
 @app.route('/submit/quiz',methods = ['POST','GET'])
 def submit():
-        ans = 0
+        cache.flushall()
+        a = 0
+        user_answer = request.form.to_dict('ans')
+        # user_answer = user_answer[:1]
+        ans = list(user_answer.values())
+        ans = ans[0]
+        user_ans = ans[:1]
+        print(user_ans)
+        game.user_answers.append(user_ans)
+        correct_answers = []
         print(obj1.getLevel())
+        
         try:
             for dic in game.q_rand:
+                print("1")
                 dic['q_id'] = str(dic['q_id'])
                 user_question = int(dic['q_id'])
+                print("21")
                 user_questions.append(user_question)
-                user_answer = request.form.get(dic['q_id'])
-                user_answer = user_answer[:1]
-                #print(user_answer)
-                user_answers.append(user_answer)
                 correct_ans = dic['answer']
-                #print(correct_ans)
-                if(user_answer.startswith(correct_ans)):
-                    ans = ans + 1
-                print(ans)
-            score = str(ans)                
+                correct_answers.append(correct_ans)
+                print("321")
+            print((correct_answers))
+            print(type(game.user_answers))
+            cache.set(obj1.getMobile(),'user_ans')
+            cache.expire('user_ans',timedelta(seconds = 30))
+            for i in range(len(game.user_answers)):
+                cache.lpush('user_ans',game.user_answers[i])
+            print("hello")
+            #if(user_answers.startswith(correct_ans)):
+            for i in range(0,5):
+                if(check_ans(game.user_answers[i],correct_answers[i])):
+                    a = a + 1
+                print(a) 
+
+            score = str(a)                
             obj1.setScore(score)
-                
-            return render_template("score.html",score = score)
+            cache.set(obj1.getMobile(),score)
+            return render_template("score.html",score = score,user_id= obj1.getMobile())
         except Exception as e:
             print("ERROR : ",e)
         return jsonify()
@@ -176,7 +221,6 @@ def play_again():
                 return redirect(url_for('user_level'),code = 302)
             else:
                 return render_template("thankyou.html")
-                # return redirect(url_for('data'),code = 302)
         except Exception as e:
             print("----ERROR------",e) 
             return jsonify()
@@ -192,7 +236,6 @@ def data():
         data1 = "User Name"
         user_data[data1] = obj1.getName()
     
-
         data2 = "Mobile"
         user_data[data2] = obj1.getMobile()
 
@@ -229,6 +272,38 @@ def data():
     return jsonify()
 
 
+@app.route('/add')
+def add():
+    try:
+        time_taken = obj1.getEndTime() - obj1.getStartTime()
+        user_data = {}
+        arr1 = []
+        data1 = "Mobile"
+        user_data[data1] = obj1.getMobile()
+        print("111111")
+        data2 = "User answers"
+        user_data[data2] = cache.lrange('user_ans',0,-1)
+        print("----------")
+        
+        data3 = "Score"
+        user_data[data3] = cache.get(obj1.getMobile())
+        print("!!!!!!!!!!!!!!!!!!!!")
+
+        data4 = "Timetaken"
+        user_data[data4] = "%.2f" %time_taken
+
+        dateToday = datetime.now()
+        data5 = "Date"
+        user_data[data5] = dateToday
+
+        arr1.append(user_data)
+        user_data = {}
+        cache.expire(obj1.getMobile(),timedelta(seconds = 30))
+        return obj.user_add_details(arr1)
+    except Exception as e:
+        print("error in data function",e)
+
+    return jsonify()
 
 if __name__ == "__main__":
     app.run(debug=True)

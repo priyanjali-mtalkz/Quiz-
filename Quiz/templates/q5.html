@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Quiz/KBC </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+        div{
+            font-size:30px;
+            text-align:center;
+        }
+    </style>
+    </head>
+    <body>
+
+        <h1>QUIZ APP</h1>
+        <div>TIME LEFT = <span id="1"></span></div>
+        <h2>Your user ID is {{user_id}}</h2>
+        <p id="1"></p>
+        <form action = "/submit/quiz", method="post" >
+            <h4>
+                {{question.question}} <br><br>
+                <input type = "radio" name = "{{question.q_id}}" value = "{{question.option1}}" required> {{question.option1}}<br>
+                <input type = "radio" name = "{{question.q_id}}" value = "{{question.option2}}" required> {{question.option2}}<br>
+                <input type = "radio" name = "{{question.q_id}}" value = "{{question.option3}}" required> {{question.option3}}<br>
+                <input type = "radio" name = "{{question.q_id}}" value = "{{question.option4}}" required> {{question.option4}}<br>
+            </h4>
+        <br><br>
+        <input type = "submit" name = "submitform" value = "NEXT">
+        </form>
+    </body>
+    <script>
+        document.getElementById('1').innerHTML = 02 + ":" + 00;
+        startTimer();
+        function startTimer() {
+        var presentTime = document.getElementById('1').innerHTML;
+        var timeArray = presentTime.split(/[:]+/);
+        var m = timeArray[0];
+        var s = checkSecond((timeArray[1] - 1));
+        if(s==59){
+            m=m-1
+        }
+        if(m<0){
+            document.getElementById("1").innerHTML = "Your session has Expired"
+            alert("Your session has Expired")
+            window.history.back()
+            return
+        }
+        document.getElementById('1').innerHTML = m + ":" + s;
+        console.log(m)
+        setTimeout(startTimer, 1000);
+    }
+
+    function checkSecond(sec) {
+    if (sec < 10 && sec >= 0) {sec = "0" + sec}; 
+    if (sec < 0) {sec = "59"};
+    return sec;
+    }
+    </script>
+</html>
