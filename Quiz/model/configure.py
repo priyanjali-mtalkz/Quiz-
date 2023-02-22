@@ -1,6 +1,3 @@
-import uuid
-
-user_answers = []
 class configure:
     def __init__(self):
         self.user_data = {'userName': None,'mobile':None,'score':None,
@@ -85,13 +82,3 @@ class configure:
     def getLevel(self):
             print("level:", self.user_data.get('level'))
             return self.user_data['level']
-
-    def userAnswer(self):
-        user_answer = request.form.to_dict('ans')
-        # user_answer = user_answer[:1]
-        ans = list(user_answer.values())
-        ans = ans[0]
-        user_ans = ans[:1]
-        print(user_ans)
-        user_answers.append(user_ans)
-        return user_answers

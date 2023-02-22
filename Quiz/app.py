@@ -1,15 +1,14 @@
 from flask import Flask
 from model.schema import Schema
+from model.configure import configure
+import test
 import pymongo
 import time
 from flask import request,render_template,redirect,url_for,jsonify
 import random
-from model.configure import configure
-from datetime import datetime
-import test
+from datetime import datetime,timedelta
 import redis
 import json
-from datetime import timedelta
 
 app = Flask(__name__)
 
@@ -84,11 +83,6 @@ def game():
         new_q = list(filter(test.afterDate, q))        
         #print(new_q)
         game.q_rand = random.sample(q,5)
-        # print(game.q_rand[0])
-        # print(game.q_rand[1])
-        # print(game.q_rand[2])
-        # print(game.q_rand[3])
-        # print(game.q_rand[4])
         #game.q_rand = random.sample(new_q,len(new_q) if len(new_q)<5 else 5)
         #return render_template("quiz.html",question = game.q_rand)    
         return render_template("q1.html",question=game.q_rand[0],user_id =  obj1.getMobile())
@@ -172,6 +166,7 @@ def submit():
                 correct_ans = dic['answer']
                 correct_answers.append(correct_ans)
                 print("321")
+            print(user_questions)
             print((correct_answers))
             print(type(game.user_answers))
             cache.set(obj1.getMobile(),'user_ans')
@@ -179,6 +174,11 @@ def submit():
             for i in range(len(game.user_answers)):
                 cache.lpush('user_ans',game.user_answers[i])
             print("hello")
+            cache.set(obj1.getMobile(),'user_ques')
+            cache.expire('user_ques',timedelta(seconds = 30))
+            for i in range(len(user_questions)):
+                cache.lpush('user_ques',user_questions[i])
+            print("---DONE----")
             #if(user_answers.startswith(correct_ans)):
             for i in range(0,5):
                 if(check_ans(game.user_answers[i],correct_answers[i])):
@@ -295,6 +295,9 @@ def add():
         dateToday = datetime.now()
         data5 = "Date"
         user_data[data5] = dateToday
+
+        data8 = "User questions"
+        user_data[data8] = cache.lrange('user_ques',0,-1)
 
         arr1.append(user_data)
         user_data = {}
