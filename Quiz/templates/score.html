@@ -7,6 +7,7 @@
         <h1>RESULT PAGE</h1>
         <form action = "/play/again" method="post" >
         <h2>Your score is {{score}}</h2>
+        <h2>Your total time is <span id="totaltime"></span></h2>
         
         <h4>Do you want to play again?</h4>
         <input type = "submit" name = "choice" value = "YES"> 
@@ -14,4 +15,8 @@
         </form> 
         </form>
     </body>
+    <script>
+        timeleft = localStorage.getItem("timing") 
+        document.getElementById("totaltime").innerHTML=timeleft;
+    </script>
 </html>

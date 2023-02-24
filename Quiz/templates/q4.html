@@ -29,7 +29,8 @@
         </form>
     </body>
     <script>
-        document.getElementById('1').innerHTML = 02 + ":" + 00;
+        lefttime = localStorage.getItem("timeleft");
+        document.getElementById('1').innerHTML = lefttime;
         startTimer();
         function startTimer() {
         var presentTime = document.getElementById('1').innerHTML;
@@ -48,6 +49,8 @@
         document.getElementById('1').innerHTML = m + ":" + s;
         console.log(m)
         setTimeout(startTimer, 1000);
+    localStorage.setItem("timeleft", presentTime);
+    return false;
     }
 
     function checkSecond(sec) {

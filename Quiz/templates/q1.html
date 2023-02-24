@@ -52,8 +52,10 @@
         document.getElementById('1').innerHTML = m + ":" + s;
         console.log(m)
         setTimeout(startTimer, 1000);
+    
+    localStorage.setItem("timeleft", presentTime);
+    return false;
     }
-
     function checkSecond(sec) {
     if (sec < 10 && sec >= 0) {sec = "0" + sec}; 
     if (sec < 0) {sec = "59"};
